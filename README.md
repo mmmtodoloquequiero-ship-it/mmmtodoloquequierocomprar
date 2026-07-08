@@ -49,3 +49,4 @@ Para subirlo a GitHub y Vercel:
 3. Conecta el repositorio en Vercel y añade las variables de entorno en la configuración del proyecto.
 "# mmmtodoloquequierocomprar" 
 "# mmmtodoloquequierocomprar" 
+"# mmmtodoloquequierocomprar" 
