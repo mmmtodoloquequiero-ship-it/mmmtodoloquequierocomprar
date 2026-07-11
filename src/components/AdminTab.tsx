@@ -1037,7 +1037,7 @@ const AdminTab: React.FC<AdminTabProps> = ({
             setCfgDeliveryPanic((tenant as any).delivery_panic_button || false);
 
             // Cargar configuraciones de Fidelización (Micro-CRM)
-            setLoyConfigEnabled((tenant as any).loyalty_enabled !== false);
+            setLoyConfigEnabled((tenant as any).loyalty_enabled === true);
             if ((tenant as any).loyalty_config) {
                 const cfg = (tenant as any).loyalty_config;
                 setLoyConfigEarnChan(cfg.earn_channel || 'both');

@@ -8,9 +8,10 @@ interface ScannerVoiceInputProps {
     placeholder?: string;
     /** Se llama SOLO cuando el código viene del escáner de cámara (no de voz/teclado) */
     onScanBarcode?: (barcode: string) => void;
+    isLight?: boolean;
 }
 
-export function ScannerVoiceInput({ onSearch, placeholder = "Buscar producto...", onScanBarcode }: ScannerVoiceInputProps) {
+export function ScannerVoiceInput({ onSearch, placeholder = "Buscar producto...", onScanBarcode, isLight = false }: ScannerVoiceInputProps) {
     const [searchTerm, setSearchTerm] = useState('');
 
     // Voice State
@@ -227,16 +228,20 @@ export function ScannerVoiceInput({ onSearch, placeholder = "Buscar producto..."
     };
 
     return (
-        <div className="bg-slate-900/50 backdrop-blur-md border border-white/5 rounded-3xl p-4 shadow-xl">
+        <div className={`${isLight ? 'bg-white/80 border-slate-200 shadow-sm' : 'bg-slate-900/50 border-white/5 shadow-xl'} backdrop-blur-md border rounded-3xl p-4 transition-colors`}>
             <form id="search-form" onSubmit={handleSearchSubmit} className="flex gap-2 relative w-full">
                 <div className="relative flex-1">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={20} />
+                    <Search className={`absolute left-4 top-1/2 -translate-y-1/2 ${isLight ? 'text-slate-400' : 'text-slate-500'}`} size={20} />
                     <input
                         type="text"
                         value={searchTerm}
                         onChange={handleSearchChange}
                         placeholder={placeholder}
-                        className="w-full bg-slate-950 border border-slate-800 text-white rounded-2xl pl-12 pr-4 py-4 font-bold text-base md:text-lg outline-none focus:border-amber-500 transition-all shadow-inner"
+                        className={`w-full border rounded-2xl pl-12 pr-4 py-4 font-bold text-base md:text-lg outline-none focus:border-amber-500 transition-all shadow-inner ${
+                            isLight 
+                                ? 'bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400' 
+                                : 'bg-slate-950 border-slate-800 text-white placeholder:text-slate-500'
+                        }`}
                     />
                     {searchTerm && !isListening && (
                         <button
@@ -255,10 +260,10 @@ export function ScannerVoiceInput({ onSearch, placeholder = "Buscar producto..."
                 <button
                     type="button"
                     onClick={() => setShowScanner(true)}
-                    className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-5 rounded-2xl flex items-center justify-center shadow-lg transition-all"
+                    className={`${isLight ? 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-600' : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'} border px-5 rounded-2xl flex items-center justify-center shadow-lg transition-all`}
                     title="Escanear Código de Barras"
                 >
-                    <Camera size={24} />
+                    <Camera size={24} className={isLight ? "text-slate-500" : ""} />
                 </button>
 
                 <button

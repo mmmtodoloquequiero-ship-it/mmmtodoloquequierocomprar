@@ -4,6 +4,55 @@
   --radius-xl: 1.5rem;
   --radius-2xl: 2rem;
   --radius-3xl: 2.5rem;
+
+  /* REBRANDING PREMIUM (DARK & LIGHT) */
+  --color-slate-950: #050505;
+  --color-neutral-950: #050505;
+  --color-black: #050505;
+  
+  --color-slate-900: #111111;
+  --color-neutral-900: #111111;
+  
+  --color-slate-800: #1A1A1A;
+  --color-neutral-800: #1A1A1A;
+  
+  --color-slate-50: #FDFBF7;
+  --color-neutral-50: #FDFBF7;
+  --color-slate-100: #F8F6F0;
+  --color-neutral-100: #F8F6F0;
+  --color-slate-200: #EAE6DF;
+  --color-neutral-200: #EAE6DF;
+  --color-white: #FFFFFF;
+  
+  --color-slate-400: #A1A1AA;
+  --color-neutral-400: #A1A1AA;
+  
+  --color-slate-500: #3F3F46;
+  --color-neutral-500: #3F3F46;
+  --color-slate-600: #27272A;
+  --color-neutral-600: #27272A;
+  --color-slate-650: #18181B;
+  --color-slate-700: #18181B;
+  --color-neutral-700: #18181B;
+  
+  /* Paleta de Marca (Oro / Bronce) */
+  --color-amber-400: #E6C27A;
+  --color-amber-500: #D4AF37;
+  --color-amber-600: #C5A059;
+  --color-amber-700: #C5A059;
+  
+  --color-yellow-400: #E6C27A;
+  --color-yellow-500: #D4AF37;
+  --color-yellow-600: #C5A059;
+
+  /* Botones Peligro / Delete */
+  --color-red-500: #7F1D1D;
+  --color-red-600: #7F1D1D;
+
+  /* Sombras Doradas */
+  --shadow-lg: 0 10px 15px -3px rgba(212, 175, 55, 0.05), 0 4px 6px -4px rgba(212, 175, 55, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(212, 175, 55, 0.05), 0 8px 10px -6px rgba(212, 175, 55, 0.05);
+  --shadow-2xl: 0 25px 50px -12px rgba(212, 175, 55, 0.12);
 }
 
 :root {
@@ -15,17 +64,24 @@
 
 @layer base {
   body {
-    background-color: #020617;
-    /* bg-slate-950 fallback */
-    color: #f8fafc;
-    /* text-slate-50 fallback */
+    background-color: var(--color-slate-950);
+    color: var(--color-slate-50);
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
     /* PWA Native App Feel */
     user-select: none;
     -webkit-user-select: none;
     overscroll-behavior-y: none;
+  }
+
+  h1, h2 {
+    letter-spacing: -0.5px;
+  }
+  
+  .uppercase {
+    letter-spacing: 1px;
   }
 
   body::before {
@@ -48,17 +104,24 @@
 
 @layer components {
   .glass {
-    background-color: rgba(15, 23, 42, 0.4);
+    background-color: rgba(17, 17, 17, 0.6);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(212, 175, 55, 0.15);
   }
 
   .neon-glow {
-    box-shadow: 0 0 20px -5px rgba(249, 115, 22, 0.5);
+    box-shadow: 0 0 20px -5px rgba(212, 175, 55, 0.3);
   }
 
   .neon-icon {
-    filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.6));
+    filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.4));
+  }
+
+  /* Micro-animaciones para botones primarios / Premium Feel */
+  button.bg-amber-500:hover, button.bg-amber-600:hover, button.bg-yellow-500:hover, button.bg-yellow-600:hover, button.bg-gradient-to-r:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(212, 175, 55, 0.12);
+    transition: all 0.3s ease;
   }
 
   .custom-scrollbar::-webkit-scrollbar {

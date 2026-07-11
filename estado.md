@@ -45,3 +45,13 @@ El usuario, enfocÃ¡ndose en la eficiencia y la hiper-automatizaciÃ³n, busca ofre
 - [x] **PWA (Progressive Web App):** Se configuraron los iconos con el logotipo provisto por el usuario, se activó la instalación nativa como app (Service Worker + Manifest), y se añadió un botón inteligente en la UI para instalar la app desde navegadores compatibles.
 
 - [x] **Eliminación del Módulo de Reservas en Caja:** Se retiró por completo la pestaña y la sección de visualización de Reservas dentro del componente de toma de pedidos e histórico (OrderTab.tsx), limpiando la interfaz para el personal sin comprometer el comportamiento de otras pestañas de caja.
+
+- [x] **Fidelización Inmediata y Configuración:** Se agregó lógica para calcular localmente el cashback generado en una compra y mostrar de inmediato un cartel o banner con el beneficio (tanto en la app del cliente como en la caja). Además, se cambió el valor por defecto del sistema de fidelización a desactivado para nuevas cuentas.
+
+- [x] **Rebranding Global Premium (UI/UX):** Se implementó una paleta de colores global estricta enfocada en Negro Profundo y Dorado Metálico. Se sobrescribieron los valores nativos de Tailwind en globals.css para impactar toda la app instantáneamente sin generar riesgo arquitectónico. Se ajustó el letter-spacing, las sombras (golden glows) y el hover en botones primarios.
+
+- [x] **Corrección de Modo Claro:** Se removió la clase bg-black estática del contenedor principal del menú público para permitir que el Modo Claro rellene toda la pantalla. Se optimizaron los colores grises intermedios en Tailwind (slate-100 a slate-700) para asegurar un contraste agudo y perfectamente legible en Modo Claro.
+
+- [x] **Visibilidad de Buscador en Modo Claro:** Se actualizó el componente ScannerVoiceInput para soportar dinámicamente el tema Claro (isLight). Esto resuelve el problema de la caja de búsqueda negra y texto invisible en la vista de Caja (OrderTab).
+
+- [x] **Corrección de Visibilidad en Buscador del Menú Público:** Se actualizó la barra de búsqueda en PublicMenu.tsx para que respete dinámicamente el Modo Claro, cambiando el fondo a claro y el texto a oscuro, evitando así que el texto sea invisible al buscar productos.

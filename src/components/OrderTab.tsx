@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Category, Product, Ingredient, OrderItem, Order } from '@/types/database';
-import { Minus, Plus, Smartphone, Check, ArrowLeft, ShoppingCart, AlertCircle, X, RefreshCw, ClipboardList, CheckCircle2, Clock, User, Flame, Navigation, AlertTriangle, Printer, Trash2, ShoppingBag, Calendar, Users } from 'lucide-react';
+import { Minus, Plus, Smartphone, Check, ArrowLeft, ShoppingCart, AlertCircle, X, RefreshCw, ClipboardList, CheckCircle2, Clock, User, Flame, Navigation, AlertTriangle, Printer, Trash2, ShoppingBag, Calendar, Users, Star } from 'lucide-react';
 import { supabase, broadcastTenantChange } from '@/lib/supabase';
 import { useNotifications } from '@/lib/store';
 import { useOfflineStore } from '@/lib/offlineStore';
@@ -113,6 +113,7 @@ export default function OrderTab({ products, ingredients, categories: initialCat
     // Estados y Búsqueda del Club de Clientes y Fidelización en Caja (mmmTodoLoQueQuiero 2026)
     const [loyaltyAccount, setLoyaltyAccount] = useState<any>(null);
     const [useLoyaltyDiscount, setUseLoyaltyDiscount] = useState(false);
+    const [earnedCashback, setEarnedCashback] = useState<{earned: number, tier: string} | null>(null);
 
     React.useEffect(() => {
         if (!tenant?.id || !phone.trim() || phone.trim().length < 6) {
@@ -715,7 +716,7 @@ export default function OrderTab({ products, ingredients, categories: initialCat
 
         // Calcular descuento por fidelidad (Monedero Virtual mmmTodoLoQueQuiero 2026)
         let loyaltyRedemption = 0;
-        if (useLoyaltyDiscount && loyaltyAccount && tenant?.loyalty_enabled !== false) {
+        if (useLoyaltyDiscount && loyaltyAccount && tenant?.loyalty_enabled === true) {
             const config = tenant?.loyalty_config || {};
             const redeemChannel = config.redeem_channel || 'both';
             const isSalonAllowed = redeemChannel === 'both' || redeemChannel === 'salon';
@@ -954,6 +955,26 @@ export default function OrderTab({ products, ingredients, categories: initialCat
 
             addNotification(`Nuevo pedido de ${clientName}`, Array.from(targetRoles), 'info', tenant?.id);
             alert("¡Pedido creado y notificado correctamente!");
+
+            // Mostrar modal de cashback si aplica (Fidelización)
+            if (phone.trim() && tenant?.loyalty_enabled === true) {
+                const config = tenant?.loyalty_config || {};
+                const earnChannel = config.earn_channel || 'both';
+                const isSalonAllowedToEarn = earnChannel === 'both' || earnChannel === 'salon';
+                
+                if (isSalonAllowedToEarn && finalTotal > 0) {
+                    const tiers = config.tiers || [];
+                    let currentTier = loyaltyAccount ? loyaltyAccount.tier : 'bronce';
+                    let cashback_pct = config.cashback_pct || 5.0;
+                    const tierCfg = tiers.find((t: any) => t.name === currentTier);
+                    if (tierCfg) cashback_pct = tierCfg.cashback_pct;
+
+                    const earned = Math.round(finalTotal * (cashback_pct / 100));
+                    if (earned > 0) {
+                        setEarnedCashback({ earned, tier: currentTier });
+                    }
+                }
+            }
 
             if (isAfipBilling && tenant?.afip_enabled) {
                 try {
@@ -1217,7 +1238,7 @@ export default function OrderTab({ products, ingredients, categories: initialCat
                 <div className="pt-4 border-t border-slate-700 flex justify-between items-end">
                     <span className="text-slate-400 font-bold uppercase text-xs">Total</span>
                     <div className="text-right">
-                        {useLoyaltyDiscount && loyaltyAccount && tenant?.loyalty_enabled !== false && (() => {
+                        {useLoyaltyDiscount && loyaltyAccount && tenant?.loyalty_enabled === true && (() => {
                             const loyaltyRedemption = Math.min(parseFloat(loyaltyAccount.balance) || 0, totalPrice);
                             return (
                                 <>
@@ -1259,7 +1280,7 @@ export default function OrderTab({ products, ingredients, categories: initialCat
                         />
                     </div>
 
-                    {loyaltyAccount && tenant?.loyalty_enabled !== false && (() => {
+                    {loyaltyAccount && tenant?.loyalty_enabled === true && (() => {
                         const config = tenant?.loyalty_config || {};
                         const redeemChannel = config.redeem_channel || 'both';
                         const isSalonAllowed = redeemChannel === 'both' || redeemChannel === 'salon';
@@ -1511,6 +1532,7 @@ export default function OrderTab({ products, ingredients, categories: initialCat
                                 onSearch={setSearchTerm}
                                 onScanBarcode={handleBarcodeScanned}
                                 placeholder="Buscar productos o dictar..."
+                                isLight={isLight}
                             />
                         </div>
                     )}
@@ -2426,7 +2448,7 @@ export default function OrderTab({ products, ingredients, categories: initialCat
                     })()}
                 </div>
             ) : null}
-                                         {/* Offline Queue Modal (Mantiene funcionalidad al 100%) */}
+                                         {/* Offline Queue Modal */}
             {showOfflineQueue && (
                 <div className="fixed inset-0 z-[200] flex items-center justify-center px-4 bg-black/80 backdrop-blur-md animate-in fade-in">
                     <div className={`w-full max-w-sm rounded-[2.5rem] p-6 space-y-4 shadow-2xl flex flex-col max-h-[80vh] border transition-all ${

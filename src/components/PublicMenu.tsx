@@ -372,6 +372,7 @@ export default function PublicMenu({ tenant }: PublicMenuProps) {
   const [customerInfo, setCustomerInfo] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [earnedCashback, setEarnedCashback] = useState<{earned: number, tier: string} | null>(null);
   const [successOrderNumber, setSuccessOrderNumber] = useState<number | null>(null);
   
   // Propinas
@@ -1635,7 +1636,7 @@ export default function PublicMenu({ tenant }: PublicMenuProps) {
 
       const finalPhoneNumber = deliveryPhone ? `${phonePrefix} ${deliveryPhone.trim()}` : '';
       let loyaltyRedemption = 0;
-      if (useLoyaltyDiscount && loyaltyAccount && tenant.loyalty_enabled !== false) {
+      if (useLoyaltyDiscount && loyaltyAccount && tenant.loyalty_enabled === true) {
         const config = tenant.loyalty_config || {};
         const redeemChannel = config.redeem_channel || 'both';
         const isOnlineAllowed = redeemChannel === 'both' || redeemChannel === 'online';
@@ -1851,6 +1852,29 @@ export default function PublicMenu({ tenant }: PublicMenuProps) {
         setSuccessOrderNumber(createdOrder.order_number);
         setOrderSuccess(true);
         setCart([]);
+
+        // Calcular si ganó cashback
+        if (tenant.loyalty_enabled === true && deliveryPhone.trim() && cartTotal > 0) {
+          const config = tenant.loyalty_config || {};
+          const earnChannel = config.earn_channel || 'both';
+          const isOnlineAllowedToEarn = earnChannel === 'both' || earnChannel === 'online';
+          
+          if (isOnlineAllowedToEarn) {
+             const finalTotal = cartTotal - appliedDiscount - loyaltyRedemption;
+             if (finalTotal > 0) {
+                 const tiers = config.tiers || [];
+                 let currentTier = loyaltyAccount ? loyaltyAccount.tier : 'bronce';
+                 let cashback_pct = config.cashback_pct || 5.0;
+                 const tierCfg = tiers.find((t: any) => t.name === currentTier);
+                 if (tierCfg) cashback_pct = tierCfg.cashback_pct;
+
+                 const earned = Math.round(finalTotal * (cashback_pct / 100));
+                 if (earned > 0) {
+                     setEarnedCashback({ earned, tier: currentTier });
+                 }
+             }
+          }
+        }
       }
       return createdOrder.id;
 
@@ -2399,13 +2423,17 @@ export default function PublicMenu({ tenant }: PublicMenuProps) {
               </button>
             )}
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+              <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isLight ? 'text-slate-400' : 'text-neutral-500'}`} />
               <input 
                 type="text" 
                 placeholder="¿Qué se te antoja?"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-neutral-900/50 border border-neutral-800/80 rounded-2xl pl-10 pr-4 py-2.5 text-sm outline-none transition-all placeholder:text-neutral-500 focus:border-white focus:ring-1 focus:ring-white focus:bg-neutral-900"
+                className={`w-full border rounded-2xl pl-10 pr-4 py-2.5 text-sm outline-none transition-all ${
+                  isLight 
+                    ? 'bg-slate-100 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:bg-white' 
+                    : 'bg-neutral-900/50 border-neutral-800/80 text-white placeholder:text-neutral-500 focus:border-white focus:ring-1 focus:ring-white focus:bg-neutral-900'
+                }`}
               />
             </div>
           </div>
@@ -2692,9 +2720,11 @@ export default function PublicMenu({ tenant }: PublicMenuProps) {
 
       {/* LANDING PAGE CONTENT */}
       {showLanding && (
-        <main className="w-full min-h-screen bg-black overflow-x-hidden animate-in fade-in zoom-in-95 duration-500 pb-40 relative">
+        <main className={`w-full min-h-screen overflow-x-hidden animate-in fade-in zoom-in-95 duration-500 pb-40 relative ${isLight ? 'bg-slate-50' : 'bg-black'}`}>
           {/* Fondo Estrellado Animado (opcional para dar más "wow") */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 via-[#0a0a0a] to-black opacity-80 pointer-events-none" />
+          {!isLight && (
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 via-[#0a0a0a] to-black opacity-80 pointer-events-none" />
+          )}
           {/* SECCIÓN PRINCIPAL: IMAGEN DE AMBIENTE / CARRUSEL */}
           {(tenant?.landing_config?.hero_style === 'image' || tenant?.landing_config?.hero_style === 'video') && (
             <div className="relative w-full h-64 md:h-96 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-0 rounded-b-[2rem] md:rounded-b-[4rem]">
@@ -3830,7 +3860,7 @@ export default function PublicMenu({ tenant }: PublicMenuProps) {
                 isLight ? 'border-slate-200 bg-white shadow-[0_-8px_30px_rgba(0,0,0,0.04)]' : 'border-neutral-800 bg-neutral-900/80'
               }`}>
                 
-                {loyaltyAccount && tenant.loyalty_enabled !== false && (() => {
+                {loyaltyAccount && tenant.loyalty_enabled === true && (() => {
                   const config = tenant.loyalty_config || {};
                   const redeemChannel = config.redeem_channel || 'both';
                   const isOnlineAllowed = redeemChannel === 'both' || redeemChannel === 'online';
@@ -4006,7 +4036,7 @@ export default function PublicMenu({ tenant }: PublicMenuProps) {
                     </div>
                   )}
                   {(() => {
-                    const loyaltyRedemption = useLoyaltyDiscount && loyaltyAccount && tenant.loyalty_enabled !== false
+                    const loyaltyRedemption = useLoyaltyDiscount && loyaltyAccount && tenant.loyalty_enabled === true
                       ? Math.min(parseFloat(loyaltyAccount.balance) || 0, cartTotal - appliedDiscount)
                       : 0;
                     if (loyaltyRedemption <= 0) return null;
@@ -4023,7 +4053,7 @@ export default function PublicMenu({ tenant }: PublicMenuProps) {
                   <span className={`transition-colors duration-500 ${isLight ? 'text-slate-600' : 'text-neutral-400'}`}>Total a pagar</span>
                   <div className="flex flex-col items-end">
                     {(() => {
-                      const loyaltyRedemption = useLoyaltyDiscount && loyaltyAccount && tenant.loyalty_enabled !== false
+                      const loyaltyRedemption = useLoyaltyDiscount && loyaltyAccount && tenant.loyalty_enabled === true
                         ? Math.min(parseFloat(loyaltyAccount.balance) || 0, cartTotal - appliedDiscount)
                         : 0;
                       const hasAnyDiscount = appliedDiscount > 0 || loyaltyRedemption > 0;
@@ -4709,12 +4739,26 @@ export default function PublicMenu({ tenant }: PublicMenuProps) {
               )}
             </div>
 
+            {/* Banner de Beneficio Ganado (Fidelización) */}
+            {earnedCashback && (
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-5 text-center mt-4 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 to-yellow-400"></div>
+                <div className="flex justify-center mb-2">
+                  <Star className="w-8 h-8 text-amber-500 drop-shadow-[0_0_15px_rgba(249,115,22,0.5)]" />
+                </div>
+                <h4 className="text-amber-500 font-black uppercase text-sm mb-1 tracking-wider">¡Beneficio Ganado!</h4>
+                <p className={`text-xs mb-3 ${isLight ? 'text-slate-600' : 'text-neutral-400'}`}>Has acumulado saldo para tu próxima compra gracias a tu nivel <span className="font-bold text-amber-500 uppercase">{earnedCashback.tier}</span>.</p>
+                <p className="text-3xl font-black text-amber-400">+${earnedCashback.earned.toLocaleString('es-AR')}</p>
+              </div>
+            )}
+
             {/* Acciones del Modal */}
             <div className="space-y-3 pt-4">
               <button
                 onClick={() => {
                   setOrderSuccess(false);
                   setSuccessOrderNumber(null);
+                  setEarnedCashback(null);
                   setIsCartOpen(false);
                 }}
                 className={`w-full py-4 font-black text-xs uppercase tracking-widest rounded-2xl border transition-all active:scale-95 ${
