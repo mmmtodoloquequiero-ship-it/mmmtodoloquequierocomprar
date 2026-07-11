@@ -6,9 +6,11 @@ import { Mic, MicOff, Search, Camera, X, Loader2 } from 'lucide-react';
 interface ScannerVoiceInputProps {
     onSearch: (term: string) => void;
     placeholder?: string;
+    /** Se llama SOLO cuando el código viene del escáner de cámara (no de voz/teclado) */
+    onScanBarcode?: (barcode: string) => void;
 }
 
-export function ScannerVoiceInput({ onSearch, placeholder = "Buscar producto..." }: ScannerVoiceInputProps) {
+export function ScannerVoiceInput({ onSearch, placeholder = "Buscar producto...", onScanBarcode }: ScannerVoiceInputProps) {
     const [searchTerm, setSearchTerm] = useState('');
 
     // Voice State
@@ -132,7 +134,12 @@ export function ScannerVoiceInput({ onSearch, placeholder = "Buscar producto..."
         // Vibrar en móvil para confirmar escaneo
         if (navigator.vibrate) navigator.vibrate(200);
         setSearchTerm(decodedText);
-        onSearch(decodedText);
+        // Si hay un manejador específico de escaneo por cámara, usarlo primero
+        if (onScanBarcode) {
+            onScanBarcode(decodedText);
+        } else {
+            onSearch(decodedText);
+        }
         handleCloseScanner();
     };
 

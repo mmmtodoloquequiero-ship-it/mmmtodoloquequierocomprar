@@ -627,6 +627,60 @@ export default function OrderTab({ products, ingredients, categories: initialCat
         addNotification(`Agregado: ${item.name} (x${quantity})`, ['staff'], 'success');
     };
 
+    /**
+     * Cuando se escanea un código de barras en Pedidos:
+     * 1. Busca en ingredients.barcode (el código se cargó desde Stock)
+     * 2. Via productIngredients, encuentra los productos que usan ese ingrediente
+     * 3. Si hay UN solo producto → lo agrega al carrito automáticamente
+     * 4. Si hay varios → muestra los resultados filtrados para elegir
+     * 5. Si no hay ninguno → búsqueda normal por nombre
+     */
+    const handleBarcodeScanned = (barcode: string) => {
+        const trimmed = barcode.trim();
+
+        // Paso 1: ¿Hay un producto cuyo barcode propio coincide?
+        const directMatch = products.find(
+            p => p.is_active !== false && p.barcode && p.barcode.toLowerCase() === trimmed.toLowerCase()
+        );
+        if (directMatch) {
+            addToCart(directMatch.id);
+            addNotification(`✅ ${directMatch.name} agregado`, ['staff'], 'success');
+            setSearchTerm(''); // Limpiar buscador
+            return;
+        }
+
+        // Paso 2: Buscar en ingredientes por barcode
+        const matchedIngredient = ingredients.find(
+            i => i.barcode && i.barcode.toLowerCase() === trimmed.toLowerCase()
+        );
+        if (matchedIngredient) {
+            // Paso 3: Encontrar productos que usan este ingrediente
+            const linkedProductIds = productIngredients
+                .filter(pi => pi.ingredient_id === matchedIngredient.id)
+                .map(pi => pi.product_id);
+            const linkedProducts = products.filter(
+                p => p.is_active !== false && linkedProductIds.includes(p.id)
+            );
+
+            if (linkedProducts.length === 1) {
+                // Un único producto → agregar directamente al carrito
+                addToCart(linkedProducts[0].id);
+                addNotification(`✅ ${linkedProducts[0].name} agregado`, ['staff'], 'success');
+                setSearchTerm('');
+                return;
+            }
+            if (linkedProducts.length > 1) {
+                // Varios productos → mostrar resultados filtrados para que elija
+                setSearchTerm(matchedIngredient.name);
+                return;
+            }
+        }
+
+        // Paso 4: Fallback — búsqueda normal por nombre
+        setSearchTerm(trimmed);
+    };
+
+
     const removeFromCart = (productId: string) => {
         setCart(prev => {
             const newVal = (prev[productId] || 0) - 1;
@@ -1454,7 +1508,8 @@ export default function OrderTab({ products, ingredients, categories: initialCat
                     {subTab === 'new_order' && (
                         <div className="mb-4 animate-in fade-in slide-in-from-top-4">
                             <ScannerVoiceInput 
-                                onSearch={setSearchTerm} 
+                                onSearch={setSearchTerm}
+                                onScanBarcode={handleBarcodeScanned}
                                 placeholder="Buscar productos o dictar..."
                             />
                         </div>

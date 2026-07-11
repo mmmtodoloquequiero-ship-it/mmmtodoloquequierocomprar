@@ -3000,7 +3000,21 @@ const AdminTab: React.FC<AdminTabProps> = ({
                         let catActiveProducts = products.filter(p => p.category_id === cat.id && p.is_active !== false);
                         
                         if (searchTermProducts) {
-                            catActiveProducts = catActiveProducts.filter(p => p.name.toLowerCase().includes(searchTermProducts.toLowerCase()) || (p.barcode && p.barcode.toLowerCase() === searchTermProducts.toLowerCase()));
+                            const termLower = searchTermProducts.toLowerCase();
+                            // Buscar ingrediente cuyo barcode coincida con el término
+                            const matchedIng = ingredients.find(
+                                i => i.barcode && i.barcode.toLowerCase() === termLower
+                            );
+                            const linkedProdIdsByBarcode = matchedIng
+                                ? productIngredients
+                                    .filter((pi: any) => pi.ingredient_id === matchedIng.id)
+                                    .map((pi: any) => pi.product_id)
+                                : [];
+                            catActiveProducts = catActiveProducts.filter(p =>
+                                p.name.toLowerCase().includes(termLower) ||
+                                (p.barcode && p.barcode.toLowerCase() === termLower) ||
+                                linkedProdIdsByBarcode.includes(p.id)
+                            );
                         }
                         
                         if (searchTermProducts && catActiveProducts.length === 0) return null;
