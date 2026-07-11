@@ -12,6 +12,8 @@
     "@afipsdk/afip.js": "^0.7.11",
     "@serwist/next": "^9.5.11",
     "@supabase/supabase-js": "^2.108.2",
+    "@zxing/browser": "^0.2.1",
+    "@zxing/library": "^0.23.0",
     "clsx": "^2.1.1",
     "dotenv": "^17.4.2",
     "html5-qrcode": "^2.3.8",
